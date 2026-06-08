@@ -22,9 +22,9 @@ directory (`.claude/`, `.agents/`, `.cursor/`, `.github/`) and are tracked in `s
 
 ## Skills
 
-| skill | what it does |
+| skill&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | what it does |
 |---|---|
-| [`update-deps`](skills/update-deps/SKILL.md) | Safely update Bun dependencies (incl. new majors) without breaking the Vercel deploy under a `minimumReleaseAge` supply-chain guard. |
+| [`update&#8209;deps`](skills/update-deps/SKILL.md) | Safely update Bun dependencies (incl. new majors) without breaking the Vercel deploy under a `minimumReleaseAge` supply-chain guard. |
 
 ## Layout
 
