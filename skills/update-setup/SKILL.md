@@ -1,9 +1,9 @@
 ---
 name: update-setup
-description: Safely refresh a repo's agent setup — dependency bumps under a supply-chain release-age guard (bun/pnpm/npm/uv/cargo), plus vendored agent-skill updates via npx skills update. Stack-aware. Use for an automated daily/weekly refresh, or whenever the user asks to "update deps", "bump packages", "update skills", "refresh setup", or when a build fails with "blocked by minimum-release-age". The maintenance counterpart to agent-setup.
+description: Safely refresh a repo's agent setup — dependency bumps under a supply-chain release-age guard (bun/pnpm/npm/uv/cargo), plus vendored agent-skill updates via npx skills update (including confirmed-deletion cleanup of skills whose upstream source is gone). Stack-aware. Use for an automated daily/weekly refresh, or whenever the user asks to "update deps", "bump packages", "update skills", "refresh setup", "clean up dead skills", or when a build fails with "blocked by minimum-release-age". The maintenance counterpart to agent-setup.
 metadata:
   author: MrBrunoWolff
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # update-setup — safely refresh deps + vendored skills
@@ -107,6 +107,31 @@ npx skills@latest update -y
 - ⚠️ `npx`/`bunx` run packages **outside** the lockfile release-age guard — `npx skills@latest`
   itself fetches the newest CLI. For fully reproducible automation, pin the version
   (`npx skills@<version>`).
+
+### Handle genuinely-deleted skills
+
+`npx skills update` does **not** prune a skill whose upstream source has disappeared — it prints
+`✗ Failed to update <name>` and leaves the entry stale in `skills-lock.json` and on disk. But a
+failure is **not proof of deletion** — the same line appears on a transient network/rate-limit
+error (you'll often see `✗ Failed to check for deleted skills from <source>` alongside it, which is
+the CLI's own check being throttled). Never auto-remove on a bare failure.
+
+So **confirm deletion before offering cleanup**:
+
+1. Collect the `Failed to update` skill names from the CLI output.
+2. For each, read its `source` + `skillPath` from `skills-lock.json` and verify the path upstream
+   (e.g. `gh api repos/<source>/contents/<skillPath>` — a hard **404** = genuinely gone; a `403`
+   rate-limit / network error = transient, leave it alone and report "couldn't verify").
+3. **Only for confirmed 404s**, ask the user (one prompt, multi-select) whether to clean each up.
+   Cleanup = remove the entry from `skills-lock.json` **and** delete its installed dirs across every
+   agent store (`.claude/skills/<name>`, `.agents/skills/<name>`, `.cursor/…`). Pruning the lock
+   matters: `npx skills remove` deletes files but does **not** prune the lock, so a leftover entry
+   gets reinstalled (or re-fails) on the next update.
+4. Skills that failed but **couldn't be confirmed 404** → report as "transient, retry next run",
+   never delete.
+
+Default to **keeping** anything uncertain. Deletion is the user's call, surfaced as a prompt — not
+an automatic side effect of an update.
 
 ## Job 3 — Verify + commit
 
