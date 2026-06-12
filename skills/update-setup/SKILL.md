@@ -136,7 +136,13 @@ done
 - Use `gh` (authenticated, ~5000 req/hr) so the sweep itself isn't what gets rate-limited. For a
   large lock, this is N requests — acceptable interactively; in fast/CI mode, gate it behind
   Signal A or an explicit "audit" request rather than running every time.
-- A `gh` call that fails for a **non-404 reason** (403/network) is "couldn't verify" — not stale.
+- `jq` may be absent — read the lock with whatever's present (`jq`/`node`/`bun`). Likewise the loop:
+  prefer sequential checks; a broken `PATH` in a piped subshell can make every `gh` call silently
+  fail.
+- **Only a confirmed HTTP 404 means stale.** A `gh` call that errors for *any other reason* — 403,
+  network, rate-limit, or the command failing to execute at all — is "couldn't verify," never
+  stale. If the whole sweep comes back "all stale," that is a false-positive cascade (the checker
+  is failing, not the skills) — abort the audit and report, don't prune anything.
 
 **Confirm, then prune.** Union the two signals and classify each candidate:
 
