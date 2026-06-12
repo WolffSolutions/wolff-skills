@@ -1,6 +1,6 @@
 ---
 name: agent-setup
-description: Set up a repository for effective agent-assisted development. Orchestrates five opt-in phases — curated skill recommendations based on the detected stack (web, React Native, iOS, Android, Python, …), a context-management playbook written into CLAUDE.md, a permissions allowlist, deterministic hooks (including write-protection for vendored third-party skills), and supply-chain guards (minimum-release-age for bun/pnpm/uv). Use when the user asks to "set up this repo for agents", "agent setup", "what skills should I add", "recommend skills", or is bootstrapping agent tooling in a new or existing project.
+description: Set up a repository for effective agent-assisted development. Orchestrates opt-in phases — curated skill recommendations based on the detected stack (web, React Native, iOS, Android, Python, …), a context-management playbook and stack-aware quality gates (lint/typecheck/react-doctor/…) written into CLAUDE.md, a permissions allowlist, deterministic hooks (including write-protection for vendored third-party skills), and supply-chain guards (minimum-release-age for bun/pnpm/uv). Use when the user asks to "set up this repo for agents", "agent setup", "what skills should I add", "recommend skills", "set up quality gates / guardrails", or is bootstrapping agent tooling in a new or existing project.
 metadata:
   author: MrBrunoWolff
   version: "1.0.0"
@@ -15,7 +15,9 @@ The user may skip any phase. Never apply anything unconfirmed.
 
 Before proposing anything, read what exists:
 
-- `CLAUDE.md` (root and `.claude/`) — does it exist? Does it already have a context-management section?
+- `CLAUDE.md` (root and `.claude/`) — does it exist? Does it already have `## Context management`
+  or `## Quality gates` sections?
+- Quality tooling — `package.json` lint/typecheck/test/doctor scripts, `ruff`/`mypy`/`clippy` configs.
 - `.claude/settings.json` / `.claude/settings.local.json` — existing permissions and hooks?
 - `skills-lock.json` — which skills are already installed?
 - Package-manager config (`bunfig.toml`, `pnpm-workspace.yaml`, `[tool.uv]`) — release-age guard present?
@@ -31,7 +33,7 @@ wolff-skills) → detect stack(s) → diff against installed skills → compose 
 within budget → present plan → confirm → install. This phase also runs standalone when the user
 only asks for skill recommendations.
 
-## Phase 2 — Context-management playbook → CLAUDE.md
+## Phase 2a — Context-management playbook → CLAUDE.md
 
 Insert the playbook from [context-playbook.md](context-playbook.md) into the repo's `CLAUDE.md`
 under a `## Context management` heading (create `CLAUDE.md` if absent; replace the section if it
@@ -47,6 +49,26 @@ already exists from a previous run).
 
 Tailor the playbook lightly to the repo (e.g. reference the repo's actual test command, mention
 `/handoff` only if the handoff skill is installed or was accepted in Phase 1).
+
+## Phase 2b — Quality gates → CLAUDE.md
+
+Write a `## Quality gates` section into `CLAUDE.md` so **every future agent** runs the repo's
+quality checks before committing — this is the durable, standing guardrail, not a one-time scan.
+
+Procedure (see [quality-gates.md](quality-gates.md) for the per-stack reference):
+
+1. Detect the stack(s) and which gate tools the repo **actually has** — `package.json` scripts and
+   dev-deps, config files (`tsconfig.json`, `ruff.toml`, `.golangci.*`, …).
+2. Compose the **fast core loop** (lint → typecheck → react-doctor for web; the stack's core gates
+   otherwise), using the repo's real script names. List heavier gates (knip, build, full test
+   suite) separately as "before push/PR".
+3. **Flag missing core gates** — e.g. a Next.js repo with no typecheck script: offer to add
+   `"typecheck": "tsc --noEmit"`. Suggest; don't silently inject.
+4. Write the section (template in [quality-gates.md](quality-gates.md)) with the rule: never commit
+   on a failing gate; fix the rule/config, don't weaken or skip it.
+
+These gate commands should also be **allowlisted in Phase 3a** so they run prompt-free, and may be
+**enforced by a hook in Phase 3b** for teams that want hard rather than soft enforcement.
 
 ## Phase 3a — Permissions allowlist
 
@@ -69,10 +91,11 @@ permission-prompt fatigue. Baseline (tailor to the detected stack):
 }
 ```
 
-Add stack-specific read-only entries (e.g. `Bash(bun test:*)`, `Bash(npx tsc --noEmit:*)`,
-`Bash(pytest:*)`) **only** if the user opts in — test runners execute project code, so they're a
-step up in trust. Never propose allowlisting write/network/destructive commands
-(`rm`, `curl`, `git push`, deploy commands).
+Add the **Phase 2b quality-gate commands** as allowlist entries (e.g. `Bash(bun run lint:*)`,
+`Bash(bunx tsc --noEmit:*)`, `Bash(bun run doctor:*)`, `Bash(pytest:*)`) **only** if the user opts
+in — gate runners execute project code, so they're a step up in trust from read-only git/ls/rg.
+Allowlisting them is what makes the gates run prompt-free. Never propose allowlisting
+write/network/destructive commands (`rm`, `curl`, `git push`, deploy commands).
 
 Merge into existing `settings.json` — never clobber existing permissions or other keys.
 
@@ -147,6 +170,32 @@ Offer a **modest** set — hooks run on every matching event, so each one must e
 
    Exit code 2 blocks the tool call and feeds the message back to the agent. Escape hatch: the
    user edits manually outside the agent, or temporarily disables the hook.
+
+4. **Quality-gate enforcement** (optional — hard enforcement of the Phase 2b gates) — a Stop hook
+   that runs the fast core gate loop and blocks the turn from ending if it fails, so an agent can't
+   wrap up on a red lint/typecheck. Only offer when the gates are fast (seconds); never wire a full
+   build or slow test suite into a Stop hook — it punishes every turn. Example (web):
+
+   ```json
+   {
+     "hooks": {
+       "Stop": [
+         {
+           "matcher": "",
+           "hooks": [
+             {
+               "type": "command",
+               "command": "bun run lint && bunx tsc --noEmit || { echo 'Quality gate failed — fix lint/typecheck before finishing.' >&2; exit 2; }"
+             }
+           ]
+         }
+       ]
+     }
+   }
+   ```
+
+   Default to **soft** (the CLAUDE.md guide from Phase 2b) unless the user explicitly wants the hook
+   — Stop hooks fire on every turn end and slow the loop.
 
 Present each hook individually; merge into existing `settings.json` hooks without clobbering.
 If `.claude/state/` is introduced, add it to `.gitignore` (ask first — some teams want handoff

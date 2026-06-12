@@ -24,7 +24,7 @@ directory (`.claude/`, `.agents/`, `.cursor/`, `.github/`) and are tracked in `s
 
 | skill&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | what it does |
 |---|---|
-| [`agent&#8209;setup`](skills/agent-setup/SKILL.md) | Make a repo agent-ready in five opt-in phases: stack-aware curated skill installs, a context-management playbook in `CLAUDE.md`, a permissions allowlist, deterministic hooks (incl. vendored-skill write protection), and supply-chain release-age guards. |
+| [`agent&#8209;setup`](skills/agent-setup/SKILL.md) | Make a repo agent-ready in opt-in phases: stack-aware curated skill installs, a context-management playbook **and quality gates** (lint/typecheck/react-doctor/…) in `CLAUDE.md`, a permissions allowlist, deterministic hooks (incl. vendored-skill write protection), and supply-chain release-age guards. |
 | [`update&#8209;setup`](skills/update-setup/SKILL.md) | Refresh a repo's setup: stack-aware dependency bumps under a minimum-release-age supply-chain guard (bun/pnpm/npm/uv/cargo) **and** vendored agent-skill updates via `npx skills update`. The maintenance counterpart to `agent-setup`. |
 
 ## Catalog
