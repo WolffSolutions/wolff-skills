@@ -21,7 +21,7 @@ Legend: ⭐ = authoritative / first-party source · 🗂️ = curated index (a l
 
 | Repo | Link | What it is |
 |------|------|------------|
-| ⭐ WolffSolutions/wolff-skills | https://github.com/WolffSolutions/wolff-skills | Your own skills repo (`agent-setup`, `update-deps`, this catalog). |
+| ⭐ WolffSolutions/wolff-skills | https://github.com/WolffSolutions/wolff-skills | Your own skills repo (`agent-setup`, `update-setup`, this catalog). |
 | mattpocock/skills | https://github.com/mattpocock/skills | Matt Pocock's TS/engineering + productivity skills (`tdd`, `triage`, `grill-me`, `handoff`, `write-a-skill`, …). |
 | addyosmani/agent-skills | https://github.com/addyosmani/agent-skills | Addy Osmani — production-grade engineering skills (`/spec`, `/plan`, `/build`, `/review`, `/ship`), agent personas, hooks. |
 | safishamsi/graphify | https://github.com/safishamsi/graphify | Turns a code/docs/schema folder into a queryable knowledge graph (tree-sitter + LLM); 25 languages. |
@@ -106,7 +106,7 @@ Machine-friendly section consumed by the `agent-setup` skill (Phase 1, see
 | issue breakdown | `to-issues` | mattpocock/skills | general | project | — |
 | architecture review | `improve-codebase-architecture` | mattpocock/skills | general | project | — |
 | codebase knowledge graph | `graphify` | safishamsi/graphify | general (large repos) | project | — |
-| dependency updates (bun) | `update-deps` | WolffSolutions/wolff-skills | general (bun repos) | project | — |
+| dep + skill refresh | `update-setup` | WolffSolutions/wolff-skills | general | project | — |
 | skill authoring | `write-a-skill` | mattpocock/skills | general | global | anthropics skill-creator |
 | terse output mode | `caveman` | mattpocock/skills | general | global | — |
 | session handoff | `handoff` | mattpocock/skills | general | global | — |

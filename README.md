@@ -8,7 +8,7 @@ installable with the [`skills`](https://github.com/vercel-labs/skills) CLI — t
 
 ```bash
 # a specific skill
-npx skills@latest add WolffSolutions/wolff-skills --skill update-deps
+npx skills@latest add WolffSolutions/wolff-skills --skill agent-setup
 
 # list what's available
 npx skills@latest add WolffSolutions/wolff-skills --list
@@ -25,7 +25,7 @@ directory (`.claude/`, `.agents/`, `.cursor/`, `.github/`) and are tracked in `s
 | skill&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | what it does |
 |---|---|
 | [`agent&#8209;setup`](skills/agent-setup/SKILL.md) | Make a repo agent-ready in five opt-in phases: stack-aware curated skill installs, a context-management playbook in `CLAUDE.md`, a permissions allowlist, deterministic hooks (incl. vendored-skill write protection), and supply-chain release-age guards. |
-| [`update&#8209;deps`](skills/update-deps/SKILL.md) | Safely update Bun dependencies (incl. new majors) without breaking the Vercel deploy under a `minimumReleaseAge` supply-chain guard. |
+| [`update&#8209;setup`](skills/update-setup/SKILL.md) | Refresh a repo's setup: stack-aware dependency bumps under a minimum-release-age supply-chain guard (bun/pnpm/npm/uv/cargo) **and** vendored agent-skill updates via `npx skills update`. The maintenance counterpart to `agent-setup`. |
 
 ## Catalog
 

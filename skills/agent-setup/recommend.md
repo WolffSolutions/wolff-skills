@@ -43,7 +43,7 @@ Check for these markers (a repo can match several — monorepos are normal):
 | `vercel.json` | web + vercel deploys |
 | `manifest.json` with `"manifest_version"` | chrome extension |
 | `components.json` (shadcn) or `@shadcn` deps | shadcn |
-| `bunfig.toml` / `bun.lock` | bun (enables `update-deps`) |
+| `bunfig.toml` / `bun.lock` | bun |
 
 For monorepos, scan one level deep (`apps/*`, `packages/*`) and union the detected stacks.
 

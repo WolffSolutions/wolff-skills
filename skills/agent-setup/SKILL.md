@@ -170,8 +170,8 @@ Procedure:
 1. Detect the manager(s); read the existing config — if a guard is already set, report and move on.
 2. If missing, propose the guard with a 3-day default (user may pick another window).
 3. **Pair with the update flow**: a release-age guard means routine `update` commands must respect
-   it or builds break later. For bun repos, this is exactly what the `update-deps` skill handles
-   (`bun update --latest --minimum-release-age=259200`) — install it in Phase 1 if not already.
+   it or builds break later. This is exactly what the `update-setup` skill handles (per-manager
+   guarded bumps + `npx skills update`) — install it in Phase 1 if not already.
 4. Remind that the guard only protects installs that go through the lockfile path — `npx`/`bunx`
    one-offs (including `npx skills` itself) execute fresh packages outside it. Prefer pinned
    versions for recurring scripted `npx` use.
