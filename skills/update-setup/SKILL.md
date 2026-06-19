@@ -3,7 +3,7 @@ name: update-setup
 description: Safely refresh a repo's agent setup — dependency bumps under a supply-chain release-age guard (bun/pnpm/npm/uv/cargo), plus vendored agent-skill updates via npx skills update with a lock-integrity audit that flags + offers cleanup of stale entries whose upstream source is deleted or renamed (404). Stack-aware. Use for an automated daily/weekly refresh, or whenever the user asks to "update deps", "bump packages", "update skills", "refresh setup", "clean up dead skills", "audit the lock", or when a build fails with "blocked by minimum-release-age". The maintenance counterpart to agent-setup.
 metadata:
   author: MrBrunoWolff
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # update-setup — safely refresh deps + vendored skills
@@ -44,10 +44,18 @@ Detect the manager from its lockfile and run the matching command. Multiple may 
 ```bash
 bun --version                                          # must be ≥ 1.3.x (older ignores the guard)
 bun update --latest --minimum-release-age=259200
+bun install                                            # MANDATORY reconcile — see below
 ```
 
 - `--latest` adopts newest versions across majors; `--minimum-release-age` keeps the 3-day guard
   explicit so it applies even if the runner's Bun doesn't read `bunfig.toml`.
+- **Always follow `bun update --latest` with a plain `bun install` (`bun i`).** `bun update --latest`
+  rewrites the lockfile's recorded specifier for every bumped package to the literal `"latest"`,
+  even though `package.json` now carries a real caret range. Left as-is this is not just cosmetic:
+  in a **workspace/monorepo** it can leave the lock internally inconsistent, so the Job 3 frozen
+  install fails with `lockfile had changes, but lockfile is frozen`. A plain `bun install`
+  reconciles the lock back to the manifest's real ranges (`grep -c '"latest"' bun.lock` should
+  return `0` afterward). This reconcile is **not optional** and must be baked into any automation.
 - Guard lives **only** in `bunfig.toml` (`[install] minimumReleaseAge`, seconds). Bun does NOT read
   it from `.npmrc` — `min-release-age` there is an inert no-op.
 - Bypass the wait for a trusted package via `minimumReleaseAgeExcludes = ["typescript", …]`.
